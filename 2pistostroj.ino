@@ -141,13 +141,14 @@ void loop() {
     }
   }
 
-  //pokud tedka striham a cas po strihu nektereho z laseru prekrocil nastaveny limit, spusti posun
+  //pokud tedka striham a cas po strihu nektereho z laseru prekrocil nastaveny limit, spusti posun a zhasni strihaci diodu. 
   if (striha1 and millis() > cas_strih1 + DOBA_STRIHU) {
     loguj("Laser 1 dosahl casu strihu. Spoustim odsun 1.");
     cas_posun1 = millis();
     posouva1 = true;
     striha1 = false;
     digitalWrite(PIN_POSUN1, HIGH);
+    digitalWrite(PIN_DIODA1, LOW);
   }
   if (striha2 and millis() > cas_strih2 + DOBA_STRIHU) {
     loguj("Laser 2 dosahl casu strihu. Spoustim odsun 2.");
@@ -155,6 +156,7 @@ void loop() {
     posouva2 = true;
     striha2 = false;
     digitalWrite(PIN_POSUN2, HIGH);
+    digitalWrite(PIN_DIODA2, LOW);
   }
 
   //pokud cas po zapnuti posunu prekrocil nastavenou konstantu nebo je cidlo odsunuti v tom stavu kde uz je odsunuto, vypni posun
@@ -166,20 +168,20 @@ void loop() {
   if (posouva2 and (millis() > cas_posun2 + DOBA_POSUNU or digitalRead(PIN_ODSUN2) == ODSUNUTO)) {
     loguj ("Doba posunu 2 dosahla casu posunu. Vypinam posun 2.");
     posouva1 = false;
-    digitalWrite(PIN_POSUN1, LOW);
+    digitalWrite(PIN_POSUN2, LOW);
   }
 
   
-  //blikani diodama behem posunu 
+  //blikani diodama behem posunu. pokud nestriham ani neposouvam, diody vypni.
   if (posouva1 and (millis() - cas_posun1 ) % 400 > 200) {
-    digitalWrite(PIN_DIODA1, LOW);
-  }else{
     digitalWrite(PIN_DIODA1, HIGH);
+  }else if (!striha1) {
+    digitalWrite(PIN_DIODA1, LOW);
   }
   if (posouva2 and (millis() - cas_posun2) % 400 > 200) {
-    digitalWrite(PIN_DIODA2, LOW);
-  }else{
     digitalWrite(PIN_DIODA2, HIGH);
+  }else if (!striha2){
+    digitalWrite(PIN_DIODA2, LOW);
   }
 
   
